@@ -32,11 +32,13 @@ Example of Setting Speed:
 Note that setting a speed manually will disable fan curve if set in cron until 'set curve' command is given
 
 ```
-$ fan-control set 75      OR      $ fan-control s 75
+$ fan-control set 75        OR      $ fan-control s 75
 
-$ fan-control set max     OR      $ fan-control s m
+$ fan-control set default   OR      $ fan-control s d
 
-$ fan-control set off     OR      $ fan-control s off
+$ fan-control set max       OR      $ fan-control s m
 
-$ fan-control set curve   OR      $ fan-control s c
+$ fan-control set off       OR      $ fan-control s off
+
+$ fan-control set curve     OR      $ fan-control s c
 ```
