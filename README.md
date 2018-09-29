@@ -9,7 +9,7 @@ Supports Day and Night fan curves
 Add a line to cron like this to enable automatic fan control:
 
 ```
-*/1 * * * *	~/bin/fan-control curve
+* * * * *	~/bin/fan-control curve
 ```
 
 Currently to adjust Fan Curve settings you must manually edit the script. 
