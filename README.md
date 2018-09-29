@@ -12,3 +12,31 @@ Add a line to cron like this to enable automatic fan control:
 
 Currently to adjust Fan Curve you must manually edit the script. 
 I want to eventually load it from a config file but haven't bothered yet.
+
+Example of Info Screen:
+
+```
+$ fan-control info
+| Card |		| Fan Speed |	| Fan RPM |	| GPU Temp |
+0: GeForce GTX 1080 Ti	     80%	    2632	     52°
+1: GeForce GTX 1080 Ti	     80%	    2635	     53°
+2: GeForce GTX 1080 Ti	     80%	    2661	     52°
+3: GeForce GTX 1080	     70%	    2260	     48°
+4: GeForce GTX 1080	     80%	    2908	     50°
+5: GeForce GTX 1070 Ti	     90%	    3150	     55°
+6: GeForce GTX 1070 Ti	     80%	    2802	     50°
+
+```
+
+Example of Setting Speed:
+Note that setting a speed manually will disable fan curve if set in cron until 'set curve' command is given
+
+```
+$ fan-control set 75      OR      $ fan-control s 75
+
+$ fan-control set max     OR      $ fan-control s m
+
+$ fan-control set off     OR      $ fan-control s off
+
+$ fan-control set curve   OR      $ fan-control s c
+```
