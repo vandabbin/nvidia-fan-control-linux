@@ -1,6 +1,8 @@
 # fan-control-linux-gpu
 Fan Control Script for Nvidia GPUs on Linux
 
+In order for this script to work, coolbits must be enabled in xorg.conf
+
 This script allows directly setting fan speed on Nvidia GPUs either manually or with a "fan curve".
 Supports Day and Night fan curves
 
