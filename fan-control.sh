@@ -15,6 +15,7 @@ numGPUs=$(nvidia-smi --query-gpu=count --format=csv,noheader -i 0)
 dCurveStart=12
 # Night Curve Start Time (24 Hour Time)
 nCurveStart=23
+
 # Day Curve	Night Curve
 dCurve[0]=95 && nCurve[0]=80
 dCurve[1]=90 && nCurve[1]=70
@@ -23,13 +24,16 @@ dCurve[3]=70 && nCurve[3]=40
 dCurve[4]=50 && nCurve[4]=30
 dCurve[5]=40 && nCurve[5]=20
 
+# Default Fan Speed Setting
+defaultSpeed=60
+
 case "$1" in
 	startup)
 		for i in $(seq 0 $(($numGPUs-1)))
 		do
 			nvidia-settings \
 			-a "[gpu:$i]/GPUFanControlState=1" \
-			-a "[fan:$i]/GPUTargetFanSpeed=100" & 
+			-a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" & 
 		done
 		;;
 
@@ -40,7 +44,7 @@ case "$1" in
 				speed="curve"
 				;;
 			default|d)
-				speed=40
+				speed=$defaultSpeed
 				;;
 			max|m)
 				speed=100
