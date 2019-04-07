@@ -70,15 +70,15 @@ runCurve()
 		# Set speed to appropriate value from curve
 		if [ ${gputemp[$i]} -lt $MAXTHRESHOLD ]
 		then
-			checkpoints=$((${#curve[@]}-1))
+			checkpoint=$((${#curve[@]}-1))
 			for c in $(seq 0 $checkpoints)
 			do
 				index=$c
-				if [ $c -eq $checkpoints ]
+				if [ $c -eq $checkpoint ]
 				then
 					comparison=-le
 					index=$(($c-1))
-				elif [ $c -eq $(($checkpoints-1)) ]
+				elif [ $c -eq $(($checkpoint-1)) ]
 				then
 					comparison=-gt
 				else
@@ -172,7 +172,7 @@ case "$1" in
 				-a "[fan:$i]/GPUTargetFanSpeed=$speed"
 			done
 		else
-			echo "Usage: $0 $1 {# Between 0 - 100|d (default)|m (max)|off}"
+			echo "Usage: $0 $1 {# Between 0 - 100|d (default)|m (max)|off|curve}"
 			
 		fi
 		;;
@@ -228,13 +228,11 @@ case "$1" in
 	# Applies Persistant Fan Curve (For use without cron)
 	pcurve|pc)
 		echo "pcurve" > $fanConfig
-		# Exists and is set to Persistant Curve!
 		while [ "$(cat $fanConfig)" == "pcurve" ]
 		do
 			runCurve
 			sleep $refresh
 		done
-		fi
 		;;
 
 	# Display GPU Fan and Temp Status
