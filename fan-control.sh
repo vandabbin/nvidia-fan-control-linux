@@ -96,9 +96,9 @@ runCurve()
 		# Apply fan speed if speed has changed
 		if [ $speed -ne ${currentSpeed[$i]} ]
 		then
-			nvidia-settings 
+			nvidia-settings \
 				-a "[gpu:$i]/GPUFanControlState=1" \
-				-a "[fan:${i}]/GPUTargetFanSpeed=${speed}" &
+				-a "[fan:$i]/GPUTargetFanSpeed=$speed" 
 		fi
 	done
 }
@@ -213,7 +213,7 @@ case "$1" in
 					# Set Fan Speed for Specified GPU
 					nvidia-settings \
 						-a "[gpu:$2]/GPUFanControlState=1" \
-						-a "[fan:$2]/GPUTargetFanSpeed=${3}" &
+						-a "[fan:$2]/GPUTargetFanSpeed=${3}" 
 				else
 					err=-99
 				fi
