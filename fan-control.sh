@@ -279,7 +279,6 @@ case "$1" in
 			fan_speed=$(echo ${query[$i]} | awk -F ', ' '{print $2}' | awk '{print $1}')
 			fan_rpm=$(echo ${query_rpm[$i]})
 			temp=$(echo ${query[$i]} | awk -F ', ' '{print $3}')
-			#summary[$i]="$i: $card\t     $fan_speed%\t    $fan_rpm\t     $temp°"
 			echo -e "$i: $card\t     $fan_speed%\t    $fan_rpm\t     $temp°"
 		done
 		
