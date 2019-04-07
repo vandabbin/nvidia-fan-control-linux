@@ -120,10 +120,6 @@ case "$1" in
 			curve|c)
 				speed="curve"
 				;;
-			# Enable Persistent Fan Curve (Use without Cron)
-			pcurve|pc)
-				speed="pcurve"
-				;;
 			# Set Speed to Default
 			default|d)
 				speed=$defaultSpeed
@@ -164,12 +160,6 @@ case "$1" in
 			echo $speed > $fanConfig
 			# Run Fan Curve
 			$0 $speed
-		elif [ "$speed" == "pcurve" ]
-		then
-			# Change Configuration to Persistant Curve
-			echo $speed > $fanConfig
-			printf "Persistant Curve Set\n"
-			printf "Run '%s pcurve &' at Login\nOr\nRun '%s pcurve' in a terminal to monitor output\n" $0 $0
 		elif [ $speed -ne -99 ]
 		then
 			# Enabling Manual Control and Disabling Fan Curve
@@ -237,21 +227,13 @@ case "$1" in
 	
 	# Applies Persistant Fan Curve (For use without cron)
 	pcurve|pc)
-		# Checks if Configuratio File exists
-		if [ ! -f $fanConfig ]
-		then
-			# Doesn't exist so we will create it
-			echo "pcurve" > $fanConfig
-			# And then rerun
-			$0 pcurve
-		elif [ "$(cat $fanConfig)" == "pcurve" ]
-		then
-			# Exists and is set to Persistant Curve!
-			while [ "$(cat $fanConfig)" == "pcurve" ]
-			do
-				runCurve
-				sleep $refresh
-			done
+		echo "pcurve" > $fanConfig
+		# Exists and is set to Persistant Curve!
+		while [ "$(cat $fanConfig)" == "pcurve" ]
+		do
+			runCurve
+			sleep $refresh
+		done
 		fi
 		;;
 

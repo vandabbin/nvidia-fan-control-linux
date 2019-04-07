@@ -14,18 +14,12 @@ Add a line to cron like this to enable automatic fan control:
 
 If you don't wish to use cron but instead prefer a persistant running script in the background then you can!
 
-Run the command below in a terminal window to set the .fancontrol configuration file to Persistant Curve.
-You can skip this command if you are running the script for the first time
-```
-$ fan-control.sh set pcurve
-```
 then run the script in a terminal window with
 ```
 $ fan-control.sh pcurve
 ```
 
 Or set the script to run at login in the background
-
 ```
 fan-control.sh pcurve &
 ```
