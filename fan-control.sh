@@ -57,7 +57,6 @@ runCurve()
 	if [ $time -lt $dCurveStart -o $time -gt $nCurveStart ]
 	then
 		curve=("${nCurve[@]}")
-
 	else
 		curve=("${dCurve[@]}")
 	fi
@@ -69,10 +68,8 @@ runCurve()
 		speed=100
 	
 		# Set speed to appropriate value from curve
-		if [ ${gputemp[$i]} -ge $MAXTHRESHOLD ]
+		if [ ${gputemp[$i]} -lt $MAXTHRESHOLD ]
 		then
-			speed=100 
-		else
 			checkpoints=$((${#curve[@]}-1))
 			for c in $(seq 0 $checkpoints)
 			do
@@ -159,7 +156,6 @@ case "$1" in
 
 				;;
 		esac
-
 		
 		# Disable Manual Control and Enable Fan Curve
 		if [ "$speed" == "curve" ]
@@ -292,7 +288,6 @@ case "$1" in
 		done
 		unset IFS
 		;;
-		
 		
 	*)
 		echo "Usage: $0 {startup|set|dx(diagnose)|curve|pcurve|info)}"
