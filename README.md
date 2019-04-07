@@ -1,5 +1,5 @@
-# fan-control-linux-gpu
-Fan Control Script for Nvidia GPUs on Linux
+# nvidia-fan-control-linux
+Fan Curve Control Script for Nvidia GPUs on Linux
 
 In order for this script to work, coolbits must be enabled in xorg.conf
 
