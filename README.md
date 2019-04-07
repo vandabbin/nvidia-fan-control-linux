@@ -9,25 +9,25 @@ Supports Day and Night fan curves
 Add a line to cron like this to enable automatic fan control:
 
 ```
-* * * * *	~/bin/fan-control curve
+* * * * *	~/fan-control.sh curve
 ```
 
 If you don't wish to use cron but instead prefer a persistant running script in the background then you can!
 
-First run in a terminal window
+Run the command below in a terminal window to set the .fancontrol configuration file to Persistant Curve.
+You can skip this command if you are running the script for the first time
 ```
-$ fan-control set pcurve
+$ fan-control.sh set pcurve
 ```
-This will create the .fancontrol configuration file and set it to Persistant Curve.
-You can then run the script in an active terminal window with
+then run the script in a terminal window with
 ```
-$ fan-control pcurve
+$ fan-control.sh pcurve
 ```
 
 Or set the script to run at login in the background
 
 ```
-fan-control pcurve &
+fan-control.sh pcurve &
 ```
 
 Currently to adjust Fan Curve settings you must manually edit the script. 
@@ -52,17 +52,17 @@ Example of Setting Speed:
 Note that setting a speed manually will disable fan curve if set in cron until 'set curve' command is given
 
 ```
-$ fan-control set 75        OR      $ fan-control s 75
+$ fan-control.sh set 75        OR      $ fan-control.sh s 75
 
-$ fan-control set default   OR      $ fan-control s d
+$ fan-control.sh set default   OR      $ fan-control.sh s d
 
-$ fan-control set max       OR      $ fan-control s m
+$ fan-control.sh set max       OR      $ fan-control.sh s m
 
-$ fan-control set off       OR      $ fan-control s off
+$ fan-control.sh set off       OR      $ fan-control.sh s off
 
-$ fan-control set curve     OR      $ fan-control s c
+$ fan-control.sh set curve     OR      $ fan-control.sh s c
 
-$ fan-control set pcurve    OR      $ Fan-control s pc
+$ fan-control.sh set pcurve    OR      $ fan-control.sh s pc
 ```
 
 I hope this works for all of you as well as it does for me!
