@@ -105,22 +105,12 @@ runCurve()
 
 case "$1" in
 	startup)
-		if [ -f $fanConfig ]
-		then
-			case "$(cat $fanConfig)" in
-				curve|pcurve)
-					$0 curve
-					;;
-			esac
-		elif [[ -f $fanConfig || ! -f $fanConfig ]]
-		then
-			for i in $(seq 0 $(($numGPUs-1)))
-			do
-				nvidia-settings \
-				-a "[gpu:$i]/GPUFanControlState=1" \
-				-a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" & 
-			done
-		fi
+		for i in $(seq 0 $(($numGPUs-1)))
+		do
+			nvidia-settings \
+			-a "[gpu:$i]/GPUFanControlState=1" \
+			-a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" & 
+		done
 		;;
 
 	# Set Fan Speed for all GPU Fans

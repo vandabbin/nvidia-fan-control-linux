@@ -27,7 +27,7 @@ $ fan-control pcurve
 Or set the script to run at login in the background
 
 ```
-fan-control startup &
+fan-control pcurve &
 ```
 
 Currently to adjust Fan Curve settings you must manually edit the script. 
