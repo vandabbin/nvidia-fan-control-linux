@@ -169,7 +169,7 @@ case "$1" in
 			# Change Configuration to Persistant Curve
 			echo $speed > $fanConfig
 			printf "Persistant Curve Set\n"
-			printf "Run '%s startup &' at Login\nOr\nRun '%s pcurve' in a terminal to monitor output\n" $0 $0
+			printf "Run '%s pcurve &' at Login\nOr\nRun '%s pcurve' in a terminal to monitor output\n" $0 $0
 		elif [ $speed -ne -99 ]
 		then
 			# Enabling Manual Control and Disabling Fan Curve
@@ -240,7 +240,7 @@ case "$1" in
 		# Checks if Configuratio File exists
 		if [ ! -f $fanConfig ]
 		then
-			# Doesn't exist so we will creat it
+			# Doesn't exist so we will create it
 			echo "pcurve" > $fanConfig
 			# And then rerun
 			$0 pcurve
