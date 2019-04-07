@@ -180,7 +180,7 @@ case "$1" in
 			do
 				nvidia-settings \
 				-a "[gpu:$i]/GPUFanControlState=1" \
-				-a "[fan:$i]/GPUTargetFanSpeed=$speed" &
+				-a "[fan:$i]/GPUTargetFanSpeed=$speed"
 			done
 		else
 			echo "Usage: $0 $1 {# Between 0 - 100|d (default)|m (max)|off}"
