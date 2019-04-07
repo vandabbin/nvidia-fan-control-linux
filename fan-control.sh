@@ -71,7 +71,7 @@ runCurve()
 		if [ ${gputemp[$i]} -lt $MAXTHRESHOLD ]
 		then
 			checkpoint=$((${#curve[@]}-1))
-			for c in $(seq 0 $checkpoints)
+			for c in $(seq 0 $checkpoint)
 			do
 				index=$c
 				if [ $c -eq $checkpoint ]
