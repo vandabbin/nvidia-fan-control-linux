@@ -3,7 +3,7 @@
 # Turn on Nvidia Fan Controller
 
 # FanControl Configuration Path
-fanConfig=~/.fancontrol
+fanConfig=/home/$(whoami)/.fancontrol
 
 # Export Display (For Headless Use)
 export DISPLAY=':0'
@@ -23,7 +23,7 @@ tempThresh[1]=55	# <-- Apply curve[1] if hotter than
 tempThresh[2]=50	# <-- Apply curve[2] if hotter than
 tempThresh[3]=45	# <-- Apply curve[3] if hotter than
 tempThresh[4]=40	# <-- Apply curve[4] if hotter than
-			#     Apply curve[5] if cooler than
+			# """ Apply curve[5] if cooler than
 
 # Day Curve	Night Curve
 dCurve[0]=95 && nCurve[0]=80
@@ -36,22 +36,103 @@ dCurve[5]=40 && nCurve[5]=20
 # Default Speed Setting
 defaultSpeed=60
 
+# Persistent Fan Curve Refresh Interval
+refresh=30
+
+runCurve()
+{
+	# Get GPU Temperature and Current FanSpeed
+	IFS=$'\n'
+	gputemp=($(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader))
+	currentSpeed=($(nvidia-smi --query-gpu=fan.speed --format=csv,noheader | awk '{print $1}'))
+	unset IFS
+
+	time=$(date +'%H') # Get the time
+
+	# Checks time to apply day or night curve 
+	if [ $time -lt $dCurveStart -o $time -gt $nCurveStart ]
+	then
+		curve=("${nCurve[@]}")
+
+	else
+		curve=("${dCurve[@]}")
+	fi
+
+	# Loop through each GPU
+	for i in $(seq 0 $(($numGPUs-1)))
+	do
+		# Set speed to 100 as a failsafe
+		speed=100
+	
+		# Set speed to appropriate value from curve
+		# Change these Temperature Thresholds if desired or Add more
+		if [ ${gputemp[$i]} -ge $MAXTHRESHOLD ]
+		then
+			speed=100 
+		elif [ ${gputemp[$i]} -ge ${tempThresh[0]} ]
+		then
+			speed=${curve[0]}
+	
+		elif [ ${gputemp[$i]} -ge ${tempThresh[1]} ]
+		then
+			speed=${curve[1]}
+		elif [ ${gputemp[$i]} -ge ${tempThresh[2]} ]
+		then
+			speed=${curve[2]}
+	
+		elif [ ${gputemp[$i]} -ge ${tempThresh[3]} ]
+		then
+			speed=${curve[3]}
+	
+		elif [ ${gputemp[$i]} -gt ${tempThresh[4]} ]
+		then
+			speed=${curve[4]}
+	
+		elif [ ${gputemp[$i]} -le ${tempThresh[4]} ]
+		then 
+			speed=${curve[5]}
+		fi
+	
+		# Apply fan speed if speed has changed
+		if [ $speed -ne ${currentSpeed[$i]} ]
+		then
+			nvidia-settings 
+				-a "[gpu:$i]/GPUFanControlState=1" \
+				-a "[fan:${i}]/GPUTargetFanSpeed=${speed}" &
+		fi
+	done
+}
+
 case "$1" in
 	startup)
-		for i in $(seq 0 $(($numGPUs-1)))
-		do
-			nvidia-settings \
-			-a "[gpu:$i]/GPUFanControlState=1" \
-			-a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" & 
-		done
+		if [ -f $fanConfig ]
+		then
+			case "$(cat $fanConfig)" in
+				curve|pcurve)
+					$0 curve
+					;;
+			esac
+		elif [[ -f $fanConfig || ! -f $fanConfig ]]
+		then
+			for i in $(seq 0 $(($numGPUs-1)))
+			do
+				nvidia-settings \
+				-a "[gpu:$i]/GPUFanControlState=1" \
+				-a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" & 
+			done
+		fi
 		;;
 
 	# Set Fan Speed for all GPU Fans
 	set|s)
 		case "$2" in
-			# Enable Fan Curve
+			# Enable Fan Curve (Use with Cron)
 			curve|c)
 				speed="curve"
+				;;
+			# Enable Persistent Fan Curve (Use without Cron)
+			pcurve|pc)
+				speed="pcurve"
 				;;
 			# Set Speed to Default
 			default|d)
@@ -70,18 +151,12 @@ case "$1" in
 				# Test if Proper Input was given
 				if [ $# -eq 2 ]
 				then 
-					# Is input a number?
-					re='^[0-9]+$'
-					if [[ $2 =~ $re ]]
+					# Is input a number that is less than or equal to 100?
+					re='^[0-9]{,2}$'
+					if [[ $2 =~ $re || $2 -eq 100 ]]
 					then
-						# Input is a number! But is it less than or equal to 100?
-						if [ $2 -le 100 ]
-						then
-							# Assign input as Speed
-							speed=$2
-						else
-							speed=-99
-						fi
+						# Assign input as Speed
+						speed=$2
 					else
 						speed=-99
 					fi
@@ -96,20 +171,26 @@ case "$1" in
 		# Disable Manual Control and Enable Fan Curve
 		if [ "$speed" == "curve" ]
 		then
-			# Edit Configuration to Curve
+			# Change Configuration to Curve
 			echo $speed > $fanConfig
 			# Run Fan Curve
-			$0 curve
+			$0 $speed
+		elif [ "$speed" == "pcurve" ]
+		then
+			# Change Configuration to Persistant Curve
+			echo $speed > $fanConfig
+			printf "Persistant Curve Set\n"
+			printf "Run '%s startup &' at Login\nOr\nRun '%s pcurve' in a terminal to monitor output\n" $0 $0
 		elif [ $speed -ne -99 ]
 		then
 			# Enabling Manual Control and Disabling Fan Curve
-			# Edit Configuration to Manual
 			echo "manual" > $fanConfig
 			# Loop through GPUs and Set Fan Speed
 			for i in $(seq 0 $(($numGPUs-1)))
 			do
 				nvidia-settings \
-				-a "[fan:$i]/GPUTargetFanSpeed=$speed"
+				-a "[gpu:$i]/GPUFanControlState=1" \
+				-a "[fan:$i]/GPUTargetFanSpeed=$speed" &
 			done
 		else
 			echo "Usage: $0 $1 {# Between 0 - 100|d (default)|m (max)|off}"
@@ -119,13 +200,37 @@ case "$1" in
 
 	# For testing Individual GPU Fan Settings
 	dx)
+		# Test if Proper Input was given
+		if [ $# -eq 3 ]
+		then
+			# Is input $2 a valid GPU index?
+			re='^[0-9]{,2}$'
+			if [[ $2 =~ $re && $2 -lt $numGPUs ]]
+			then
+				# is input $3 a number that is less than or equal to 100?
+				if [[ $3 =~ $re || $3 -eq 100 ]]
+				then
+					# Set Fan Speed for Specified GPU
+					nvidia-settings \
+						-a "[gpu:$2]/GPUFanControlState=1" \
+						-a "[fan:$2]/GPUTargetFanSpeed=${3}" &
+				else
+					err=-99
+				fi
+			else
+				err=-99
+			fi
+		else
+			err=-99
+		fi
 
-		nvidia-settings \
-			-a "[gpu:$2]/GPUFanControlState=1" \
-			-a "[fan:$2]/GPUTargetFanSpeed=${3}"	
+		if [ $err -eq -99 ]
+		then
+			echo "Usage: $0 $1 gpuIndex  FanSpeed Between 0 - 100"
+		fi
 		;;
 
-	# Applys Fan Curve (Add to cron for automatic use)
+	# Applys Fan Curve (For use with cron)
 	curve|c)
 		# Checks if Configuration File exists
 		if [ ! -f $fanConfig ]
@@ -137,58 +242,26 @@ case "$1" in
 		elif [ "$(cat $fanConfig)" == "curve" ]
 		then 
 			# Exists and is set to Curve!
-			# Loop through each GPU
-			for i in $(seq 0 $(($numGPUs-1)))
+			runCurve
+		fi
+		;;
+	
+	# Applys Persistant Fan Curve (For use without cron)
+	pcurve|pc)
+		# Checks if Configuratio File exists
+		if [ ! -f $fanConfig ]
+		then
+			# Doesn't exist so we will creat it
+			echo "pcurve" > $fanConfig
+			# And then rerun
+			$0 pcurve
+		elif [ "$(cat $fanConfig)" == "pcurve" ]
+		then
+			# Exists and is set to Persistant Curve!
+			while true
 			do
-				# Get GPU Temperature and Current FanSpeed
-				gputemp=$(nvidia-smi -i $i --query-gpu=temperature.gpu --format=csv,noheader)
-				currentSpeed=$(nvidia-smi -i $i --query-gpu=fan.speed --format=csv,noheader | awk '{print $1}')
-				speed=100
-				time=$(date +'%H') # Get the time
-			
-				# Checks time to apply day or night curve 
-				if [ $time -lt $dCurveStart -o $time -gt $nCurveStart ]
-				then
-					curve=("${nCurve[@]}")
-			
-				else
-					curve=("${dCurve[@]}")
-				fi
-			
-				# Set speed to appropriate value from curve
-				# Change these Temperature Thresholds if desired or Add more
-				if [ $gputemp -ge $MAXTHRESHOLD ]
-				then
-					speed=100 
-				elif [ $gputemp -ge ${tempThresh[0]} ]
-				then
-					speed=${curve[0]}
-			
-				elif [ $gputemp -ge ${tempThresh[1]} ]
-				then
-					speed=${curve[1]}
-				elif [ $gputemp -ge ${tempThresh[2]} ]
-				then
-					speed=${curve[2]}
-			
-				elif [ $gputemp -ge ${tempThresh[3]} ]
-				then
-					speed=${curve[3]}
-			
-				elif [ $gputemp -gt ${tempThresh[4]} ]
-				then
-					speed=${curve[4]}
-			
-				elif [ $gputemp -le ${tempThresh[4]} ]
-				then 
-					speed=${curve[5]}
-				fi
-			
-				# Apply fan speed if speed has changed
-				if [ $speed -ne $currentSpeed ]
-				then
-					nvidia-settings -a "[fan:${i}]/GPUTargetFanSpeed=${speed}"
-				fi
+				runCurve
+				sleep $refresh
 			done
 		fi
 		;;
@@ -224,11 +297,12 @@ case "$1" in
 		do
 			echo -e $x
 		done
+		unset IFS
 		;;
 		
 		
 	*)
-		echo "Usage: $0 {startup|set|dx(diagnose)|info)}"
+		echo "Usage: $0 {startup|set|dx(diagnose)|curve|pcurve|info)}"
 		exit 2
 esac
 

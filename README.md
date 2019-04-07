@@ -12,6 +12,24 @@ Add a line to cron like this to enable automatic fan control:
 * * * * *	~/bin/fan-control curve
 ```
 
+If you don't wish to use cron but instead prefer a persistant running script in the background then you can!
+
+First run in a terminal window
+```
+fan-control set pcurve
+```
+This will create the .fancontrol configuration file and set it to Persistant Curve.
+You can then run the script in an active terminal window with
+```
+$ fan-control pcurve
+```
+
+Or set the script to run at login in the background
+
+```
+fan-control startup &
+```
+
 Currently to adjust Fan Curve settings you must manually edit the script. 
 I want to eventually load it from a config file but haven't bothered yet.
 
@@ -43,4 +61,6 @@ $ fan-control set max       OR      $ fan-control s m
 $ fan-control set off       OR      $ fan-control s off
 
 $ fan-control set curve     OR      $ fan-control s c
+
+$ fan-control set pcurve    OR      $ Fan-control s pc
 ```
