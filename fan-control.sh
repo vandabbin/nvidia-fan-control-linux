@@ -268,6 +268,10 @@ case "$1" in
 		# | Card |		| Fan Speed |	| Fan RPM |	| GPU Temp |
 		# Geforce GTX 1080 Ti	     50%	    1600	     53°
 
+		# Print out Header
+		echo "Nvidia Fan Info"
+		echo "| Card |		| Fan Speed |	| Fan RPM |	| GPU Temp |"
+
 		# Loop through GPUs to compile summary
 		for i in $(seq 0 $(($numGPUs-1)))
 		do
@@ -275,17 +279,10 @@ case "$1" in
 			fan_speed=$(echo ${query[$i]} | awk -F ', ' '{print $2}' | awk '{print $1}')
 			fan_rpm=$(echo ${query_rpm[$i]})
 			temp=$(echo ${query[$i]} | awk -F ', ' '{print $3}')
-			summary[$i]="$i: $card\t     $fan_speed%\t    $fan_rpm\t     $temp°"
+			#summary[$i]="$i: $card\t     $fan_speed%\t    $fan_rpm\t     $temp°"
+			echo -e "$i: $card\t     $fan_speed%\t    $fan_rpm\t     $temp°"
 		done
 		
-		# Print out Header
-		echo "Nvidia Fan Info"
-		echo "| Card |		| Fan Speed |	| Fan RPM |	| GPU Temp |"
-		# Print out Summary
-		for x in ${summary[@]}
-		do
-			echo -e $x
-		done
 		unset IFS
 		;;
 		
