@@ -55,8 +55,6 @@ $ fan-control.sh set max       OR      $ fan-control.sh s m
 $ fan-control.sh set off       OR      $ fan-control.sh s off
 
 $ fan-control.sh set curve     OR      $ fan-control.sh s c
-
-$ fan-control.sh set pcurve    OR      $ fan-control.sh s pc
 ```
 
 I hope this works for all of you as well as it does for me!
