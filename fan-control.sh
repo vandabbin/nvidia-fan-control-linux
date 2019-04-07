@@ -207,7 +207,7 @@ case "$1" in
 			re='^[0-9]{,2}$'
 			if [[ $2 =~ $re && $2 -lt $numGPUs ]]
 			then
-				# is input $3 a number that is less than or equal to 100?
+				# Is input $3 a number that is less than or equal to 100?
 				if [[ $3 =~ $re || $3 -eq 100 ]]
 				then
 					# Set Fan Speed for Specified GPU
