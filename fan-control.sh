@@ -25,6 +25,10 @@ tempThresh[3]=45	# <-- Apply curve[3] if hotter than
 tempThresh[4]=40	# <-- Apply curve[4] if hotter than
 			# """ Apply curve[5] if cooler than
 
+# When Adding Curve Points you must also add temperature thresholds.
+# There must always be one less temperature threshold then there is curve point
+# for the script to work.
+
 # Day Curve	Night Curve
 dCurve[0]=95 && nCurve[0]=80
 dCurve[1]=90 && nCurve[1]=70
@@ -65,32 +69,31 @@ runCurve()
 		speed=100
 	
 		# Set speed to appropriate value from curve
-		# Change these Temperature Thresholds if desired or Add more
 		if [ ${gputemp[$i]} -ge $MAXTHRESHOLD ]
 		then
 			speed=100 
-		elif [ ${gputemp[$i]} -ge ${tempThresh[0]} ]
-		then
-			speed=${curve[0]}
-	
-		elif [ ${gputemp[$i]} -ge ${tempThresh[1]} ]
-		then
-			speed=${curve[1]}
-		elif [ ${gputemp[$i]} -ge ${tempThresh[2]} ]
-		then
-			speed=${curve[2]}
-	
-		elif [ ${gputemp[$i]} -ge ${tempThresh[3]} ]
-		then
-			speed=${curve[3]}
-	
-		elif [ ${gputemp[$i]} -gt ${tempThresh[4]} ]
-		then
-			speed=${curve[4]}
-	
-		elif [ ${gputemp[$i]} -le ${tempThresh[4]} ]
-		then 
-			speed=${curve[5]}
+		else
+			checkpoints=$((${#curve[@]}-1))
+			for c in $(seq 0 $checkpoints)
+			do
+				index=$c
+				if [ $c -eq $checkpoints ]
+				then
+					comparison=-le
+					index=$(($c-1))
+				elif [ $c -eq $(($checkpoints-1)) ]
+				then
+					comparison=-gt
+				else
+					comparison=-ge
+				fi
+
+				if [ ${gputemp[$i]} $comparison ${tempThresh[$index]} ]
+				then
+					speed=${curve[$c]}
+					break
+				fi
+			done
 		fi
 	
 		# Apply fan speed if speed has changed
@@ -220,7 +223,7 @@ case "$1" in
 		fi
 		;;
 
-	# Applys Fan Curve (For use with cron)
+	# Applies Fan Curve (For use with cron)
 	curve|c)
 		# Checks if Configuration File exists
 		if [ ! -f $fanConfig ]
@@ -236,7 +239,7 @@ case "$1" in
 		fi
 		;;
 	
-	# Applys Persistant Fan Curve (For use without cron)
+	# Applies Persistant Fan Curve (For use without cron)
 	pcurve|pc)
 		# Checks if Configuratio File exists
 		if [ ! -f $fanConfig ]
