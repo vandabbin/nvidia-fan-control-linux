@@ -14,7 +14,7 @@ Add a line to cron like this to enable automatic fan control:
 
 If you don't wish to use cron but instead prefer a persistant running script in the background then you can!
 
-then run the script in a terminal window with
+Run the script in a terminal window with
 ```
 $ fan-control.sh pcurve
 ```
