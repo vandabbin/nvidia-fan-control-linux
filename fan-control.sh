@@ -248,7 +248,7 @@ case "$1" in
 		elif [ "$(cat $fanConfig)" == "pcurve" ]
 		then
 			# Exists and is set to Persistant Curve!
-			while true
+			while [ "$(cat $fanConfig)" == "pcurve" ]
 			do
 				runCurve
 				sleep $refresh
