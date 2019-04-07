@@ -16,7 +16,7 @@ If you don't wish to use cron but instead prefer a persistant running script in 
 
 First run in a terminal window
 ```
-fan-control set pcurve
+$ fan-control set pcurve
 ```
 This will create the .fancontrol configuration file and set it to Persistant Curve.
 You can then run the script in an active terminal window with
