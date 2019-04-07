@@ -65,4 +65,4 @@ $ fan-control set curve     OR      $ fan-control s c
 $ fan-control set pcurve    OR      $ Fan-control s pc
 ```
 
-I hope you this works for all of you as well as it does for me!
+I hope this works for all of you as well as it does for me!
