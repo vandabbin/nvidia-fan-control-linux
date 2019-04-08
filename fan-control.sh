@@ -255,10 +255,10 @@ case "$1" in
 		# Loop through GPUs to compile summary
 		for i in $(seq 0 $(($numGPUs-1)))
 		do
-			card=$(echo ${query[$i]} | awk -F ', ' '{print $1}')
-			fan_speed=$(echo ${query[$i]} | awk -F ', ' '{print $2}' | awk '{print $1}')
-			fan_rpm=$(echo ${query_rpm[$i]})
-			temp=$(echo ${query[$i]} | awk -F ', ' '{print $3}')
+			card=$(awk -F ', ' '{print $1}' <<< ${query[$i]})
+			fan_speed=$(awk -F ', ' '{print $2}' <<< ${query[$i]} | awk '{print $1}')
+			fan_rpm=${query_rpm[$i]}
+			temp=$(awk -F ', ' '{print $3}' <<< ${query[$i]})
 			echo -e "$i: $card\t     $fan_speed%\t    $fan_rpm\t     $temp°"
 		done
 		
