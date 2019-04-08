@@ -69,12 +69,7 @@ runCurve()
 	time=$(date +'%H') # Get the time
 
 	# Checks time to apply day or night curve 
-	if [ $time -lt $dCurveStart -o $time -gt $nCurveStart ]
-	then
-		curve=("${nCurve[@]}")
-	else
-		curve=("${dCurve[@]}")
-	fi
+	[ $time -lt $dCurveStart -o $time -gt $nCurveStart ] && curve=("${nCurve[@]}") || curve=("${dCurve[@]}")
 
 	# Loop through each GPU
 	for i in $(seq 0 $(($numGPUs-1)))
@@ -102,20 +97,12 @@ runCurve()
 						;;
 				esac
 
-				if [ ${gputemp[$i]} $comparison ${tempThresh[$index]} ]
-				then
-					speed=${curve[$c]}
-					break
-				fi
+				[ ${gputemp[$i]} $comparison ${tempThresh[$index]} ] && { speed=${curve[$c]}; break; }
 			done
 		fi
 	
 		# Apply fan speed if speed has changed
-		if [ $speed -ne ${currentSpeed[$i]} ]
-		then
-			nvidia-settings \
-				-a "[fan:$i]/GPUTargetFanSpeed=$speed" 
-		fi
+		[ $speed -ne ${currentSpeed[$i]} ] && nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$speed"
 	done
 }
 
@@ -124,8 +111,7 @@ case "$1" in
 		initFCS
 		for i in $(seq 0 $(($numGPUs-1)))
 		do
-			nvidia-settings \
-				-a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" & 
+			nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" > /dev/null 2>&1 &
 		done
 		;;
 
@@ -155,13 +141,7 @@ case "$1" in
 					2)
 						# Is input a number that is less than or equal to 100?
 						re='^[0-9]{,2}$'
-						if [[ $2 =~ $re || $2 -eq 100 ]]
-						then
-							# Assign input as Speed
-							speed=$2
-						else
-							speed=-99
-						fi
+						[[ $2 =~ $re || $2 -eq 100 ]] && speed=$2 || speed=-99
 						;;
 					*)
 						speed=-99
@@ -188,8 +168,7 @@ case "$1" in
 				# Loop through GPUs and Set Fan Speed
 				for i in $(seq 0 $(($numGPUs-1)))
 				do
-					nvidia-settings \
-						-a "[fan:$i]/GPUTargetFanSpeed=$speed"
+					nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$speed"
 				done
 				;;
 		esac
@@ -232,12 +211,8 @@ case "$1" in
 
 	# Applies Fan Curve (For use with cron)
 	curve|c)
-		# Checks if Configuration File exists
-		if [ ! -f $fanConfig ]
-		then 
-			# Doesn't exist so we will create it
-			echo "curve" > $fanConfig
-		fi
+		# Checks if Configuration File exists and create it if it doesn't
+		[ ! -f $fanConfig ] && echo "curve" > $fanConfig
 
 		# Run fan curve if configuration is set to curve
 		case "$(cat $fanConfig)" in
