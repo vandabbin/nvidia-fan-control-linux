@@ -53,7 +53,8 @@ initFCS()
 		# It isn't lets create it
 		touch $FCSflag
 		# And set FanControlState to 1
-		nvidia-settings -a "GPUFanControlState=1"
+		nvidia-settings -a "GPUFanControlState=1" > /dev/null 2>&1
+		echo "Fan Control State Enabled"
 	fi
 }
 
