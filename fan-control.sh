@@ -1,6 +1,5 @@
 #!/bin/bash
-# Fan Control Script
-# Turn on Nvidia Fan Controller
+# Fan Control Script w/ Fan Curve
 
 # FanControl Configuration Path
 fanConfig=/home/$(whoami)/.fancontrol
@@ -74,16 +73,18 @@ runCurve()
 			for c in $(seq 0 $checkpoint)
 			do
 				index=$c
-				if [ $c -eq $checkpoint ]
-				then
-					comparison=-le
-					index=$(($c-1))
-				elif [ $c -eq $(($checkpoint-1)) ]
-				then
-					comparison=-gt
-				else
-					comparison=-ge
-				fi
+				case "$c" in
+					$checkpoint)
+						comparison=-le
+						index=$(($c-1))
+						;;
+					"$(($checkpoint-1))")
+						comparison=-gt
+						;;
+					*)
+						comparison=-ge
+						;;
+				esac
 
 				if [ ${gputemp[$i]} $comparison ${tempThresh[$index]} ]
 				then
@@ -135,78 +136,83 @@ case "$1" in
 			# Set Fan Speed Manually
 			*)
 				# Test if Proper Input was given
-				if [ $# -eq 2 ]
-				then 
-					# Is input a number that is less than or equal to 100?
-					re='^[0-9]{,2}$'
-					if [[ $2 =~ $re || $2 -eq 100 ]]
-					then
-						# Assign input as Speed
-						speed=$2
-					else
+				case "$#" in
+					2)
+						# Is input a number that is less than or equal to 100?
+						re='^[0-9]{,2}$'
+						if [[ $2 =~ $re || $2 -eq 100 ]]
+						then
+							# Assign input as Speed
+							speed=$2
+						else
+							speed=-99
+						fi
+						;;
+					*)
 						speed=-99
-					fi
-				else
-					speed=-99
-				fi
-
+						;;
+				esac
 				;;
 		esac
 		
 		# Disable Manual Control and Enable Fan Curve
-		if [ "$speed" == "curve" ]
-		then
-			# Change Configuration to Curve
-			echo $speed > $fanConfig
-			# Run Fan Curve
-			$0 $speed
-		elif [ $speed -ne -99 ]
-		then
-			# Enabling Manual Control and Disabling Fan Curve
-			echo "manual" > $fanConfig
-			# Loop through GPUs and Set Fan Speed
-			for i in $(seq 0 $(($numGPUs-1)))
-			do
-				nvidia-settings \
-				-a "[gpu:$i]/GPUFanControlState=1" \
-				-a "[fan:$i]/GPUTargetFanSpeed=$speed"
-			done
-		else
-			echo "Usage: $0 $1 {# Between 0 - 100|d (default)|m (max)|off|curve}"
-			
-		fi
+		case "$speed" in
+			curve)
+				# Change Configuration to Curve
+				echo $speed > $fanConfig
+				# Run Fan Curve
+				$0 $speed
+				;;
+			-99)
+				echo "Usage: $0 $1 {# Between 0 - 100|d (default)|m (max)|off|curve}"
+				;;
+			*)
+				# Enabling Manual Control and Disabling Fan Curve
+				echo "manual" > $fanConfig
+				# Loop through GPUs and Set Fan Speed
+				for i in $(seq 0 $(($numGPUs-1)))
+				do
+					nvidia-settings \
+					-a "[gpu:$i]/GPUFanControlState=1" \
+					-a "[fan:$i]/GPUTargetFanSpeed=$speed"
+				done
+				;;
+		esac
 		;;
 
 	# For testing Individual GPU Fan Settings
 	dx)
 		# Test if Proper Input was given
-		if [ $# -eq 3 ]
-		then
-			# Is input $2 a valid GPU index?
-			re='^[0-9]{,2}$'
-			if [[ $2 =~ $re && $2 -lt $numGPUs ]]
-			then
-				# Is input $3 a number that is less than or equal to 100?
-				if [[ $3 =~ $re || $3 -eq 100 ]]
+		case "$#" in
+			3)
+				# Is input $2 a valid GPU index?
+				re='^[0-9]{,2}$'
+				if [[ $2 =~ $re && $2 -lt $numGPUs ]]
 				then
-					# Set Fan Speed for Specified GPU
-					nvidia-settings \
-						-a "[gpu:$2]/GPUFanControlState=1" \
-						-a "[fan:$2]/GPUTargetFanSpeed=${3}" 
+					# Is input $3 a number that is less than or equal to 100?
+					if [[ $3 =~ $re || $3 -eq 100 ]]
+					then
+						# Set Fan Speed for Specified GPU
+						nvidia-settings \
+							-a "[gpu:$2]/GPUFanControlState=1" \
+							-a "[fan:$2]/GPUTargetFanSpeed=${3}" 
+					else
+						err=-99
+					fi
 				else
 					err=-99
 				fi
-			else
+				;;
+			*)
 				err=-99
-			fi
-		else
-			err=-99
-		fi
+				;;
+		esac
 
-		if [ $err -eq -99 ]
-		then
-			echo "Usage: $0 $1 gpuIndex  FanSpeed Between 0 - 100"
-		fi
+		case "$err" in
+			-99)
+				echo "Usage: $0 $1 gpuIndex  FanSpeed Between 0 - 100"
+				;;
+		esac
 		;;
 
 	# Applies Fan Curve (For use with cron)
@@ -216,18 +222,20 @@ case "$1" in
 		then 
 			# Doesn't exist so we will create it
 			echo "curve" > $fanConfig
-			# And then rerun
-			$0 curve
-		elif [ "$(cat $fanConfig)" == "curve" ]
-		then 
-			# Exists and is set to Curve!
-			runCurve
 		fi
+
+		# Run fan curve if configuration is set to curve
+		case "$(cat $fanConfig)" in
+			curve)
+				runCurve
+				;;
+		esac
 		;;
 	
 	# Applies Persistant Fan Curve (For use without cron)
 	pcurve|pc)
 		echo "pcurve" > $fanConfig
+		# Run while configuration is set to pcurve
 		while [ "$(cat $fanConfig)" == "pcurve" ]
 		do
 			runCurve
