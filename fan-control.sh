@@ -3,6 +3,8 @@
 
 # FanControl Configuration Path
 fanConfig=/home/$(whoami)/.fancontrol
+# FanControlState Flag (temporary file)
+FCSflag=/tmp/fancontrol
 
 # Export Display (For Headless Use)
 export DISPLAY=':0'
@@ -41,6 +43,19 @@ defaultSpeed=60
 
 # Persistent Fan Curve Refresh Interval
 refresh=30
+
+# Function to enable manual fan control state on first run
+initFCS()
+{
+	# Is FanControlState Flag present in temp folder?
+	if [ ! -f $FCSflag ]
+	then
+		# It isn't lets create it
+		touch $FCSflag
+		# And set FanControlState to 1
+		nvidia-settings -a "GPUFanControlState=1"
+	fi
+}
 
 runCurve()
 {
@@ -98,7 +113,6 @@ runCurve()
 		if [ $speed -ne ${currentSpeed[$i]} ]
 		then
 			nvidia-settings \
-				-a "[gpu:$i]/GPUFanControlState=1" \
 				-a "[fan:$i]/GPUTargetFanSpeed=$speed" 
 		fi
 	done
@@ -106,11 +120,11 @@ runCurve()
 
 case "$1" in
 	startup)
+		initFCS
 		for i in $(seq 0 $(($numGPUs-1)))
 		do
 			nvidia-settings \
-			-a "[gpu:$i]/GPUFanControlState=1" \
-			-a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" & 
+				-a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" & 
 		done
 		;;
 
@@ -169,12 +183,12 @@ case "$1" in
 			*)
 				# Enabling Manual Control and Disabling Fan Curve
 				echo "manual" > $fanConfig
+				initFCS
 				# Loop through GPUs and Set Fan Speed
 				for i in $(seq 0 $(($numGPUs-1)))
 				do
 					nvidia-settings \
-					-a "[gpu:$i]/GPUFanControlState=1" \
-					-a "[fan:$i]/GPUTargetFanSpeed=$speed"
+						-a "[fan:$i]/GPUTargetFanSpeed=$speed"
 				done
 				;;
 		esac
@@ -227,6 +241,7 @@ case "$1" in
 		# Run fan curve if configuration is set to curve
 		case "$(cat $fanConfig)" in
 			curve)
+				initFCS
 				runCurve
 				;;
 		esac
@@ -235,6 +250,7 @@ case "$1" in
 	# Applies Persistant Fan Curve (For use without cron)
 	pcurve|pc)
 		echo "pcurve" > $fanConfig
+		initFCS
 		# Run while configuration is set to pcurve
 		while [ "$(cat $fanConfig)" == "pcurve" ]
 		do
