@@ -135,18 +135,11 @@ case "$1" in
 				speed=0
 				;;
 			# Set Fan Speed Manually
+			[0-9]|[0-9][0-9]|100)
+				speed=$2
+				;;
 			*)
-				# Test if Proper Input was given
-				case "$#" in
-					2)
-						# Is input a number that is less than or equal to 100?
-						re='^[0-9]{,2}$'
-						[[ $2 =~ $re || $2 -eq 100 ]] && speed=$2 || speed=-99
-						;;
-					*)
-						speed=-99
-						;;
-				esac
+				speed=-99
 				;;
 		esac
 		
@@ -160,6 +153,7 @@ case "$1" in
 				;;
 			-99)
 				echo "Usage: $0 $1 {# Between 0 - 100|d (default)|m (max)|off|curve}"
+				exit 2
 				;;
 			*)
 				# Enabling Manual Control and Disabling Fan Curve
@@ -189,7 +183,7 @@ case "$1" in
 						# Set Fan Speed for Specified GPU
 						nvidia-settings \
 							-a "[gpu:$2]/GPUFanControlState=1" \
-							-a "[fan:$2]/GPUTargetFanSpeed=${3}" 
+							-a "[fan:$2]/GPUTargetFanSpeed=$3" 
 					else
 						err=-99
 					fi
@@ -205,6 +199,7 @@ case "$1" in
 		case "$err" in
 			-99)
 				echo "Usage: $0 $1 gpuIndex  FanSpeed Between 0 - 100"
+				exit 2
 				;;
 		esac
 		;;
@@ -249,8 +244,7 @@ case "$1" in
 		# Geforce GTX 1080 Ti	     50%	    1600	     53°
 
 		# Print out Header
-		echo "Nvidia Fan Info"
-		echo "| Card |		| Fan Speed |	| Fan RPM |	| GPU Temp |"
+		printf "Nvidia Fan Info\n| Card |\t\t| Fan Speed |\t| Fan RPM |\t| GPU Temp |\n"
 
 		# Loop through GPUs to compile summary
 		for i in $(seq 0 $(($numGPUs-1)))
@@ -259,7 +253,7 @@ case "$1" in
 			fan_speed=$(awk -F ', ' '{print $2}' <<< ${query[$i]} | awk '{print $1}')
 			fan_rpm=${query_rpm[$i]}
 			temp=$(awk -F ', ' '{print $3}' <<< ${query[$i]})
-			echo -e "$i: $card\t     $fan_speed%\t    $fan_rpm\t     $temp°"
+			printf "%s: %s\t     %s%%\t    %s\t     %s°\n" $i $card $fan_speed $fan_rpm $temp
 		done
 		
 		unset IFS
