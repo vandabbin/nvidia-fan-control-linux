@@ -135,7 +135,7 @@ case "$1" in
 				speed=0
 				;;
 			# Set Fan Speed Manually
-			[0-9]|[0-9][0-9]|100)
+			[0-9]|[1-9][0-9]|100)
 				speed=$2
 				;;
 			*)
