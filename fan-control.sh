@@ -48,8 +48,7 @@ refresh=30
 initFCS()
 {
 	# Is FanControlState Flag present in temp folder?
-	if [ ! -f $FCSflag ]
-	then
+	if [ ! -f $FCSflag ]; then
 		touch $FCSflag # It isn't lets create it
 		nvidia-settings -a "GPUFanControlState=1" > /dev/null 2>&1 # And set FanControlState to 1
 		echo "Fan Control State Enabled"
@@ -70,16 +69,13 @@ runCurve()
 	[ $time -lt $dCurveStart -o $time -gt $nCurveStart ] && curve=("${nCurve[@]}") || curve=("${dCurve[@]}")
 
 	# Loop through each GPU
-	for i in $(seq 0 $(($numGPUs-1)))
-	do
+	for i in $(seq 0 $(($numGPUs-1))); do
 		speed=100 # Set speed to 100 as a failsafe
 	
 		# Set speed to appropriate value from curve
-		if [ ${gputemp[$i]} -lt $MAXTHRESHOLD ]
-		then
+		if [ ${gputemp[$i]} -lt $MAXTHRESHOLD ]; then
 			checkpoint=$((${#curve[@]}-1))
-			for c in $(seq 0 $checkpoint)
-			do
+			for c in $(seq 0 $checkpoint); do
 				index=$c
 				case "$c" in
 					$checkpoint)
@@ -106,8 +102,7 @@ runCurve()
 case "$1" in
 	startup)
 		initFCS
-		for i in $(seq 0 $(($numGPUs-1)))
-		do
+		for i in $(seq 0 $(($numGPUs-1))); do
 			nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" > /dev/null 2>&1 &
 		done
 		;;
@@ -143,8 +138,7 @@ case "$1" in
 			*)
 				echo "manual" > $fanConfig # Enabling Manual Control and Disabling Fan Curve
 				initFCS
-				for i in $(seq 0 $(($numGPUs-1))) # Loop through GPUs and Set Fan Speed
-				do
+				for i in $(seq 0 $(($numGPUs-1))); do # Loop through GPUs and Set Fan Speed
 					nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$speed"
 				done
 				;;
@@ -183,8 +177,7 @@ case "$1" in
 		echo "pcurve" > $fanConfig
 		initFCS
 		# Run while configuration is set to pcurve
-		while [ "$(cat $fanConfig)" == "pcurve" ]
-		do
+		while [ "$(cat $fanConfig)" == "pcurve" ]; do
 			runCurve
 			sleep $refresh
 		done
@@ -207,8 +200,7 @@ case "$1" in
 		printf "Nvidia Fan Info\n| Card |\t\t| Fan Speed |\t| Fan RPM |\t| GPU Temp |\n"
 
 		# Loop through GPUs to compile summary
-		for i in $(seq 0 $(($numGPUs-1)))
-		do
+		for i in $(seq 0 $(($numGPUs-1))); do
 			card=$(awk -F ', ' '{print $1}' <<< ${query[$i]})
 			fan_speed=$(awk -F ', ' '{print $2}' <<< ${query[$i]} | awk '{print $1}')
 			fan_rpm=${query_rpm[$i]}
