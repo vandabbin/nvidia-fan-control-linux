@@ -30,13 +30,13 @@ tempThresh[4]=40	# <-- Apply curve[4] if hotter than
 # There must always be one less temperature threshold then there is curve point
 # for the script to work.
 
-# Day Curve	Night Curve
-dCurve[0]=95 && nCurve[0]=80
-dCurve[1]=90 && nCurve[1]=70
-dCurve[2]=80 && nCurve[2]=60
-dCurve[3]=70 && nCurve[3]=40
-dCurve[4]=50 && nCurve[4]=30
-dCurve[5]=40 && nCurve[5]=20
+# Day Curve    Night Curve
+dCurve[0]=95; nCurve[0]=80
+dCurve[1]=90; nCurve[1]=70
+dCurve[2]=80; nCurve[2]=60
+dCurve[3]=70; nCurve[3]=40
+dCurve[4]=50; nCurve[4]=30
+dCurve[5]=40; nCurve[5]=20
 
 # Default Speed Setting
 defaultSpeed=60
@@ -50,10 +50,8 @@ initFCS()
 	# Is FanControlState Flag present in temp folder?
 	if [ ! -f $FCSflag ]
 	then
-		# It isn't lets create it
-		touch $FCSflag
-		# And set FanControlState to 1
-		nvidia-settings -a "GPUFanControlState=1" > /dev/null 2>&1
+		touch $FCSflag # It isn't lets create it
+		nvidia-settings -a "GPUFanControlState=1" > /dev/null 2>&1 # And set FanControlState to 1
 		echo "Fan Control State Enabled"
 	fi
 }
@@ -74,8 +72,7 @@ runCurve()
 	# Loop through each GPU
 	for i in $(seq 0 $(($numGPUs-1)))
 	do
-		# Set speed to 100 as a failsafe
-		speed=100
+		speed=100 # Set speed to 100 as a failsafe
 	
 		# Set speed to appropriate value from curve
 		if [ ${gputemp[$i]} -lt $MAXTHRESHOLD ]
@@ -140,17 +137,13 @@ case "$1" in
 		# Disable Manual Control and Enable Fan Curve
 		case "$speed" in
 			curve)
-				# Change Configuration to Curve
-				echo $speed > $fanConfig
-				# Run Fan Curve
-				$0 $speed
+				echo $speed > $fanConfig # Change Configuration to Curve
+				$0 $speed # Run Fan Curve
 				;;
 			*)
-				# Enabling Manual Control and Disabling Fan Curve
-				echo "manual" > $fanConfig
+				echo "manual" > $fanConfig # Enabling Manual Control and Disabling Fan Curve
 				initFCS
-				# Loop through GPUs and Set Fan Speed
-				for i in $(seq 0 $(($numGPUs-1)))
+				for i in $(seq 0 $(($numGPUs-1))) # Loop through GPUs and Set Fan Speed
 				do
 					nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$speed"
 				done
