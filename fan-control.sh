@@ -119,28 +119,22 @@ case "$1" in
 	set|s)
 		case "$2" in
 			# Enable Fan Curve (Use with Cron)
-			curve|c)
-				speed="curve"
-				;;
+			curve|c)		speed="curve" ;;
+
 			# Set Speed to Default
-			default|d)
-				speed=$defaultSpeed
-				;;
+			default|d)		speed=$defaultSpeed ;;
+
 			# Set Speed to Max
-			max|m)
-				speed=100
-				;;
+			max|m|100)		speed=100 ;;
+
 			# Turn Fans Off
-			off)
-				speed=0
-				;;
+			off)			speed=0 ;;
+
 			# Set Fan Speed Manually
-			[0-9]|[1-9][0-9]|100)
-				speed=$2
-				;;
-			*)
-				speed=-99
-				;;
+			[0-9]|[1-9][0-9])	speed=$2 ;;
+
+			# Improper Input Given
+			*)			echo "Usage: $0 $1 {# Between 0 - 100|d (default)|m (max)|off|curve}"; exit 2 ;;
 		esac
 		
 		# Disable Manual Control and Enable Fan Curve
@@ -150,10 +144,6 @@ case "$1" in
 				echo $speed > $fanConfig
 				# Run Fan Curve
 				$0 $speed
-				;;
-			-99)
-				echo "Usage: $0 $1 {# Between 0 - 100|d (default)|m (max)|off|curve}"
-				exit 2
 				;;
 			*)
 				# Enabling Manual Control and Disabling Fan Curve
@@ -171,37 +161,14 @@ case "$1" in
 	# For testing Individual GPU Fan Settings
 	dx)
 		# Test if Proper Input was given
-		case "$#" in
-			3)
-				# Is input $2 a valid GPU index?
-				re='^[0-9]{,2}$'
-				if [[ $2 =~ $re && $2 -lt $numGPUs ]]
-				then
-					# Is input $3 a number that is less than or equal to 100?
-					if [[ $3 =~ $re || $3 -eq 100 ]]
-					then
-						# Set Fan Speed for Specified GPU
-						nvidia-settings \
-							-a "[gpu:$2]/GPUFanControlState=1" \
-							-a "[fan:$2]/GPUTargetFanSpeed=$3" 
-					else
-						err=-99
-					fi
-				else
-					err=-99
-				fi
-				;;
-			*)
-				err=-99
-				;;
-		esac
+		# Is input $2 a valid GPU index? Is input $3 a number that is less than or equal to 100?
+		re='^[0-9]{,2}$'
+		[ $# -eq 3 ] && [[ $2 =~ $re && $2 -lt $numGPUs ]] && [[ $3 =~ $re || $3 -eq 100 ]] \
+		&& nvidia-settings \
+			-a "[gpu:$2]/GPUFanControlState=1" \
+			-a "[fan:$2]/GPUTargetFanSpeed=$3"
 
-		case "$err" in
-			-99)
-				echo "Usage: $0 $1 gpuIndex  FanSpeed Between 0 - 100"
-				exit 2
-				;;
-		esac
+		[ $? -ne 0 ] &&	{ echo "Usage: $0 $1 gpuIndex  FanSpeed Between 0 - 100"; exit 2; }
 		;;
 
 	# Applies Fan Curve (For use with cron)
