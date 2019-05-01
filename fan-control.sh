@@ -6,7 +6,7 @@
 #####################################
 
 # FanControl Configuration Path
-fanConfig=/home/$(whoami)/.fancontrol
+fanConfig=$HOME/.fancontrol
 
 # Day Curve Start Time (24 Hour Time)
 dCurveStart=12
