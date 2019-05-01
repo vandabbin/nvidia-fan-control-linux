@@ -138,9 +138,7 @@ case "$1" in
 			*)
 				echo manual > $fanConfig # Enabling Manual Control and Disabling Fan Curve
 				initFCS
-				for i in $(seq 0 $(($numGPUs-1))); do # Loop through GPUs and Set Fan Speed
-					nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$speed"
-				done
+				nvidia-settings -a "GPUTargetFanSpeed=$speed"
 				;;
 		esac
 		;;
