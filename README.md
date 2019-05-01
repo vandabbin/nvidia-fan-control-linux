@@ -24,8 +24,8 @@ Or set the script to run at login in the background
 fan-control.sh pcurve &
 ```
 
-Currently to adjust Fan Curve settings you must manually edit the script. 
-I want to eventually load it from a config file but haven't bothered yet.
+Currently to adjust Fan Curve settings you must manually edit the 'Configurable Settings' section of the script. 
+I want to eventually load it from a seperate config file but haven't bothered yet.
 
 Example of Info Screen:
 
