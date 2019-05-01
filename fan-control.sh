@@ -1,21 +1,20 @@
 #!/bin/bash
 # Fan Control Script w/ Fan Curve
 
+#####################################
+###     Configurable Settings     ###
+#####################################
+
 # FanControl Configuration Path
 fanConfig=/home/$(whoami)/.fancontrol
-# FanControlState Flag (temporary file)
-FCSflag=/tmp/fancontrol
-
-# Export Display (For Headless Use)
-export DISPLAY=':0'
-
-# Get Number of Connected GPUs
-numGPUs=$(nvidia-smi --query-gpu=count --format=csv,noheader -i 0)
 
 # Day Curve Start Time (24 Hour Time)
 dCurveStart=12
 # Night Curve Start Time (24 Hour Time)
 nCurveStart=23
+# Night Curve Enable/Disable (true/false)
+# Disable if you don't want seperate day and night curves
+nCurveEnabled=true
 
 # Fan Curve Temperature Thresholds (In Celsius)
 MAXTHRESHOLD=65		# Fans will run at 100% if hotter than this temperature
@@ -27,8 +26,8 @@ tempThresh[4]=40	# <-- Apply curve[4] if hotter than
 			# """ Apply curve[5] if cooler than
 
 # When Adding Curve Points you must also add temperature thresholds.
-# There must always be one less temperature threshold then there is curve point
-# for the script to work.
+# There must always be one less temperature threshold (Excluding MAXTHRESHOLD)
+# then there is curve point for the script to work.
 
 # Day Curve    Night Curve
 dCurve[0]=95; nCurve[0]=80
@@ -38,21 +37,33 @@ dCurve[3]=70; nCurve[3]=40
 dCurve[4]=50; nCurve[4]=30
 dCurve[5]=40; nCurve[5]=20
 
-# Default Speed Setting
+# Default Fan Speed Setting
 defaultSpeed=60
 
 # Persistent Fan Curve Refresh Interval
 refresh=30
 
+#####################################
+###   End Configurable Settings   ###
+#####################################
+
+# Export Display (For Headless Use)
+export DISPLAY=':0'
+
+# Get Number of Connected GPUs
+numGPUs=$(nvidia-smi --query-gpu=count --format=csv,noheader -i 0)
+
 # Function to enable manual fan control state on first run
 initFCS()
 {
-	# Is FanControlState Flag present in temp folder?
-	if [ ! -f $FCSflag ]; then
-		touch $FCSflag # It isn't lets create it
-		nvidia-settings -a "GPUFanControlState=1" > /dev/null 2>&1 # And set FanControlState to 1
-		echo "Fan Control State Enabled"
-	fi
+	FanControlStates=($(nvidia-settings -q GPUFanControlState | grep 'Attribute' | awk -vFS=': ' -vRS='.' '{print $2}'))
+	for i in ${FanControlStates[@]}; do
+		if [ $i -eq 0 ]; then
+			nvidia-settings -a "GPUFanControlState=1" > /dev/null 2>&1
+			echo "Fan Control State Enabled"
+			break
+		fi
+	done
 }
 
 runCurve()
@@ -63,27 +74,24 @@ runCurve()
 	currentSpeed=($(nvidia-smi --query-gpu=fan.speed --format=csv,noheader | awk '{print $1}'))
 	unset IFS
 
-	time=$(date +'%H') # Get the time
+	[ $nCurveEnabled ] && cTime=$(date +'%H') # Get the time
 
 	# Checks time to apply day or night curve 
-	[ $time -lt $dCurveStart -o $time -gt $nCurveStart ] && curve=("${nCurve[@]}") || curve=("${dCurve[@]}")
+	[ $nCurveEnabled ] && [ $cTime -lt $dCurveStart -o $cTime -gt $nCurveStart ] && curve=("${nCurve[@]}") || curve=("${dCurve[@]}")
 
 	# Loop through each GPU
 	for i in $(seq 0 $(($numGPUs-1))); do
-		speed=100 # Set speed to 100 as a failsafe
-	
+		speed=100
+
 		# Set speed to appropriate value from curve
 		if [ ${gputemp[$i]} -lt $MAXTHRESHOLD ]; then
-			checkpoint=$((${#curve[@]}-1))
-			for c in $(seq 0 $checkpoint); do
+			cPoint=$((${#curve[@]}-1))
+			for c in $(seq 0 $cPoint); do
 				index=$c
 				case "$c" in
-					$checkpoint)
-						comparison=-le
+					$cPoint)
+						comparison=-lt
 						index=$(($c-1))
-						;;
-					"$(($checkpoint-1))")
-						comparison=-gt
 						;;
 					*)
 						comparison=-ge
@@ -100,13 +108,6 @@ runCurve()
 }
 
 case "$1" in
-	startup)
-		initFCS
-		for i in $(seq 0 $(($numGPUs-1))); do
-			nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$defaultSpeed" > /dev/null 2>&1 &
-		done
-		;;
-
 	# Set Fan Speed for all GPU Fans
 	set|s)
 		case "$2" in
@@ -129,14 +130,13 @@ case "$1" in
 			*)			echo "Usage: $0 $1 {# Between 0 - 100|d (default)|m (max)|off|curve}"; exit 2 ;;
 		esac
 		
-		# Disable Manual Control and Enable Fan Curve
 		case "$speed" in
 			curve)
-				echo $speed > $fanConfig # Change Configuration to Curve
-				$0 $speed # Run Fan Curve
+				echo curve > $fanConfig # Change Configuration to Curve
+				$0 curve # Run Fan Curve
 				;;
 			*)
-				echo "manual" > $fanConfig # Enabling Manual Control and Disabling Fan Curve
+				echo manual > $fanConfig # Enabling Manual Control and Disabling Fan Curve
 				initFCS
 				for i in $(seq 0 $(($numGPUs-1))); do # Loop through GPUs and Set Fan Speed
 					nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$speed"
@@ -212,7 +212,7 @@ case "$1" in
 		;;
 		
 	*)
-		echo "Usage: $0 {startup|set|dx(diagnose)|curve|pcurve|info)}"
+		echo "Usage: $0 {set|dx(diagnose)|curve|pcurve|info)}"
 		exit 2
 esac
 
