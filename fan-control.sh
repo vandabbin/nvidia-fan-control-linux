@@ -187,8 +187,7 @@ case "$1" in
 		# Retrieve GPU Names,  Fan Speed, and Temperature
 		query=($(nvidia-smi --query-gpu=name,fan.speed,temperature.gpu --format=csv,noheader))
 		# Retrieve GPU Fan RPM
-		query_rpm=($(nvidia-settings -q GPUCurrentFanSpeedRPM | grep -i "fan:" | awk '{print $4}' | awk -F '.' '{print $1}'))
-
+		query_rpm=($(nvidia-settings -q GPUCurrentFanSpeedRPM | grep "fan:" | awk -vFS=': ' -vRS='.' '{print $2}'))
 		# Summary format
 		# Nvidia Fan Info
 		# | Card |		| Fan Speed |	| Fan RPM |	| GPU Temp |
