@@ -80,7 +80,7 @@ runCurve()
 	[ $nCurveEnabled ] && [ $cTime -lt $dCurveStart -o $cTime -gt $nCurveStart ] && curve=("${nCurve[@]}") || curve=("${dCurve[@]}")
 
 	# Loop through each GPU
-	for i in $(seq 0 $(($numGPUs-1))); do
+	for i in $(seq 0 $((numGPUs-1))); do
 		speed=100
 
 		# Set speed to appropriate value from curve
@@ -91,7 +91,7 @@ runCurve()
 				case "$c" in
 					$cPoint)
 						comparison=-lt
-						index=$(($c-1))
+						index=$((c-1))
 						;;
 					*)
 						comparison=-ge
@@ -103,7 +103,7 @@ runCurve()
 		fi
 	
 		# Apply fan speed if speed has changed
-		[ $speed -ne ${currentSpeed[$i]} ] && nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$speed"
+		[ $speed -le $((currentSpeed[i]-2)) -o $speed -ge $((currentSpeed[i]+2)) ] && nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$speed"
 	done
 }
 
@@ -198,7 +198,7 @@ case "$1" in
 		printf "Nvidia Fan Info\n| Card |\t\t| Fan Speed |\t| Fan RPM |\t| GPU Temp |\n"
 
 		# Loop through GPUs to compile summary
-		for i in $(seq 0 $(($numGPUs-1))); do
+		for i in $(seq 0 $((numGPUs-1))); do
 			card=$(awk -F ', ' '{print $1}' <<< ${query[$i]})
 			fan_speed=$(awk -F ', ' '{print $2}' <<< ${query[$i]} | awk '{print $1}')
 			fan_rpm=${query_rpm[$i]}
