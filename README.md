@@ -43,7 +43,7 @@ $ fan-control info
 ```
 
 Example of Setting Speed:
-Note that setting a speed manually will disable fan curve if set in cron until 'set curve' command is given
+Note that setting a speed manually will disable fan curve if set in cron until 'set curve' command is given.
 Setting speed manually will also stop a background running persistant curve. You will have to either start
 a new persistant curve in the foreground or relaunch it into the background.
 
