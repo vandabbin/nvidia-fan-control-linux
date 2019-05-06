@@ -103,7 +103,7 @@ runCurve()
 		fi
 	
 		# Apply fan speed if speed has changed
-		[ $speed -le $((currentSpeed[i]-2)) -o $speed -ge $((currentSpeed[i]+2)) ] && nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$speed"
+		[ $speed -lt $((currentSpeed[i]-1)) -o $speed -gt $((currentSpeed[i]+1)) ] && nvidia-settings -a "[fan:$i]/GPUTargetFanSpeed=$speed"
 	done
 }
 
