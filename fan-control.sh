@@ -1,5 +1,7 @@
 #!/bin/bash
 # Fan Control Script w/ Fan Curve
+# BarryTheButcher Copyright (C) 2019
+# Licensed under GPL version 3
 
 #####################################
 ###     Configurable Settings     ###
