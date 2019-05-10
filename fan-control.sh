@@ -19,7 +19,7 @@
 #####################################
 
 # FanControl Configuration Path
-fanConfig=$HOME/.fancontrol
+fanConfig="$(getent passwd $USER | cut -d ':' -f6)/.fancontrol"
 
 # Day Curve Start Time (24 Hour Time)
 dCurveStart=12
