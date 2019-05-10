@@ -79,6 +79,7 @@ initFCS()
     done
 }
 
+# Function that applies Fan Curve
 runCurve()
 {
     # Get GPU Temperature and Current FanSpeed
@@ -120,6 +121,7 @@ runCurve()
     done
 }
 
+# Parse Arguments passed to script
 case "$1" in
     # Set Fan Speed for all GPU Fans
     set|s)
@@ -227,6 +229,7 @@ case "$1" in
         echo "$0 v0.1 Copyright (C) 2019 Barry Van Deerlin"
         ;;
 
+    # Incorrect Usage
     *)
         echo "Usage: $0 {set|dx(diagnose)|curve|pcurve|info)}"
         exit 2
