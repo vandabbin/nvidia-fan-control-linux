@@ -16,17 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-##### Configurable Settings #####                                        {{{1
-# FanControl Configuration Path                                          {{{2
+#####   Configurable Settings   #####                                    {{{1
+# FanControl Configuration Path                                          {{{1
 fanConfig="$(getent passwd $USER | cut -d ':' -f6)/.fancontrol"
 
-# Default Fan Speed Setting                                              {{{2
+# Default Fan Speed Setting                                              {{{1
 defaultSpeed=60
 
-# Persistent Fan Curve Refresh Interval                                  {{{2
+# Persistent Fan Curve Refresh Interval                                  {{{1
 refresh=30
 
-# Curve Settings                                                         {{{2
+# Fan Curve Settings                                                     {{{1
 # Day Curve Start Time (24 Hour Time)
 dCurveStart=12
 # Night Curve Start Time (24 Hour Time)
@@ -35,7 +35,7 @@ nCurveStart=23
 # Disable if you don't want seperate day and night curves
 nCurveEnabled=true
 
-# Fan Curve Temperature Thresholds (In Celsius)                          {{{3
+# Fan Curve Temperature Thresholds (In Celsius)                          {{{2
 # When Adding Temperature Thresholds you must also add curve points.
 # There must always be one less temperature threshold (Excluding MAXTHRESHOLD)
 # then there is curve points for the script to work.
@@ -48,7 +48,7 @@ tempThresh[3]=45    # <-- Apply curve[3] if hotter than
 tempThresh[4]=40    # <-- Apply curve[4] if hotter than
                     # """ Apply curve[5] if cooler than
 
-# Fan Curve Points                                                       {{{3
+# Fan Curve Points                                                       {{{2
 # When Adding Curve Points you must also add temperature thresholds.
 # There must always be one less temperature threshold (Excluding MAXTHRESHOLD)
 # then there is curve points for the script to work.
