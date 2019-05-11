@@ -1,4 +1,6 @@
 #!/bin/bash
+# vim:set foldenable foldmethod=marker sw=4
+# License Info                                                           {{{1
 # Fan Control Script w/ Fan Curve
 # Copyright (C) 2019  Barry Van Deerlin#
 # This program is free software: you can redistribute it and/or modify
@@ -14,13 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#####################################
-###     Configurable Settings     ###
-#####################################
-
-# FanControl Configuration Path
+##### Configurable Settings #####                                        {{{1
+# FanControl Configuration Path                                          {{{2
 fanConfig="$(getent passwd $USER | cut -d ':' -f6)/.fancontrol"
 
+# Default Fan Speed Setting                                              {{{2
+defaultSpeed=60
+
+# Persistent Fan Curve Refresh Interval                                  {{{2
+refresh=30
+
+# Curve Settings                                                         {{{2
 # Day Curve Start Time (24 Hour Time)
 dCurveStart=12
 # Night Curve Start Time (24 Hour Time)
@@ -29,7 +35,11 @@ nCurveStart=23
 # Disable if you don't want seperate day and night curves
 nCurveEnabled=true
 
-# Fan Curve Temperature Thresholds (In Celsius)
+# Fan Curve Temperature Thresholds (In Celsius)                          {{{3
+# When Adding Temperature Thresholds you must also add curve points.
+# There must always be one less temperature threshold (Excluding MAXTHRESHOLD)
+# then there is curve points for the script to work.
+
 MAXTHRESHOLD=65     # Fans will run at 100% if hotter than this temperature
 tempThresh[0]=60    # <-- Apply curve[0] if hotter than
 tempThresh[1]=55    # <-- Apply curve[1] if hotter than
@@ -38,9 +48,10 @@ tempThresh[3]=45    # <-- Apply curve[3] if hotter than
 tempThresh[4]=40    # <-- Apply curve[4] if hotter than
                     # """ Apply curve[5] if cooler than
 
+# Fan Curve Points                                                       {{{3
 # When Adding Curve Points you must also add temperature thresholds.
 # There must always be one less temperature threshold (Excluding MAXTHRESHOLD)
-# then there is curve point for the script to work.
+# then there is curve points for the script to work.
 
 # Day Curve    Night Curve
 dCurve[0]=95; nCurve[0]=80
@@ -50,23 +61,14 @@ dCurve[3]=70; nCurve[3]=40
 dCurve[4]=50; nCurve[4]=30
 dCurve[5]=40; nCurve[5]=20
 
-# Default Fan Speed Setting
-defaultSpeed=60
-
-# Persistent Fan Curve Refresh Interval
-refresh=30
-
-#####################################
-###   End Configurable Settings   ###
-#####################################
-
-# Export Display (For Headless Use)
+##### End Configurable Settings #####                                    {{{1
+# Export Display (For Headless Use)                                      {{{1
 export DISPLAY=':0'
 
-# Get Number of Connected GPUs
+# Get Number of Connected GPUs                                           {{{1
 numGPUs=$(nvidia-smi --query-gpu=count --format=csv,noheader -i 0)
 
-# Function to enable manual fan control state on first run
+# Function to enable manual fan control state on first run               {{{1
 initFCS()
 {
     FanControlStates=($(nvidia-settings -q GPUFanControlState | grep 'Attribute' | awk -vFS=': ' -vRS='.' '{print $2}'))
@@ -79,7 +81,7 @@ initFCS()
     done
 }
 
-# Function that applies Fan Curve
+# Function that applies Fan Curve                                        {{{1
 runCurve()
 {
     # Get GPU Temperature and Current FanSpeed
@@ -121,9 +123,9 @@ runCurve()
     done
 }
 
-# Parse Arguments passed to script
+# Parse and Execute Arguments passed to script                           {{{1
 case "$1" in
-    # Set Fan Speed for all GPU Fans
+    # Set Fan Speed for all GPU Fans                                     {{{2
     set|s)
         case "$2" in
             # Enable Fan Curve (Use with Cron)
@@ -158,7 +160,7 @@ case "$1" in
         esac
         ;;
 
-    # For testing Individual GPU Fan Settings
+    # For testing Individual GPU Fan Settings                            {{{2
     dx)
         # Test if Proper Input was given
         # Is input $2 a valid GPU index? Is input $3 a number that is less than or equal to 100?
@@ -171,7 +173,7 @@ case "$1" in
         [ $? -ne 0 ] && { echo "Usage: $0 $1 gpuIndex  FanSpeed Between 0 - 100"; exit 2; }
         ;;
 
-    # Applies Fan Curve (For use with cron)
+    # Applies Fan Curve (For use with cron)                              {{{2
     curve|c)
         # Checks if Configuration File exists and create it if it doesn't
         [ ! -f $fanConfig ] && echo "curve" > $fanConfig
@@ -185,7 +187,7 @@ case "$1" in
         esac
         ;;
 
-    # Applies Persistant Fan Curve (For use without cron)
+    # Applies Persistant Fan Curve (For use without cron)                {{{2
     pcurve|pc)
         echo "pcurve" > $fanConfig
         initFCS
@@ -196,7 +198,7 @@ case "$1" in
         done
         ;;
 
-    # Display GPU Fan and Temp Status
+    # Display GPU Fan and Temp Status                                    {{{2
     info|i)
         IFS=$'\n'
         # Retrieve GPU Names,  Fan Speed, and Temperature
@@ -224,15 +226,16 @@ case "$1" in
         unset IFS
         ;;
 
-    # Display Version Info
+    # Display Version Info                                               {{{2
     --version|-v)
         echo "$0 v0.1 Copyright (C) 2019 Barry Van Deerlin"
         ;;
 
-    # Incorrect Usage
+    # Incorrect Usage                                                    {{{2
     *)
         echo "Usage: $0 {set|dx(diagnose)|curve|pcurve|info)}"
         exit 2
 esac
 
+# Exit                                                                   {{{1
 exit 0
