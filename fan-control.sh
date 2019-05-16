@@ -1,5 +1,5 @@
 #!/bin/bash
-# vim:set foldenable foldmethod=marker sw=4
+# vim: set foldenable foldmethod=marker ts=4 sw=4:
 # License Info                                                           {{{1
 # Fan Control Script w/ Fan Curve
 # Copyright (C) 2019  Barry Van Deerlin#
@@ -18,7 +18,7 @@
 
 #####   Configurable Settings   #####                                    {{{1
 # FanControl Configuration Path                                          {{{1
-fanConfig="$(getent passwd $USER | cut -d ':' -f6)/.fancontrol"
+fanConfig="$(getent passwd $(id -u -n) | cut -d ':' -f6)/.fancontrol"
 
 # Default Fan Speed Setting                                              {{{1
 defaultSpeed=60
