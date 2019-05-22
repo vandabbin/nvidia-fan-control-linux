@@ -126,6 +126,35 @@ runCurve()
     done
 }
 
+# Function that gets GPU Fan Stats and displays them                     {{{1
+getInfo()
+{
+    IFS=$'\n'
+    # Retrieve GPU Names,  Fan Speed, and Temperature
+    query=($(nvidia-smi --query-gpu=name,fan.speed,temperature.gpu --format=csv,noheader))
+    # Retrieve GPU Fan RPM
+    query_rpm=($(nvidia-settings -q GPUCurrentFanSpeedRPM | grep "fan:" | awk -F ': ' -vRS='.' '{print $2}'))
+
+    # Summary format
+    # Nvidia Fan Info
+    # | Card |              | Fan Speed |   | Fan RPM | | GPU Temp |
+    # Geforce GTX 1080 Ti        50%            1600         53°
+
+    # Print out Header
+    printf "Nvidia Fan Info\n| Card |\t\t| Fan Speed |\t| Fan RPM |\t| GPU Temp |\n"
+
+    # Loop through GPUs to compile summary
+    for i in $(seq 0 $((numGPUs-1))); do
+        card=$(awk -F ', ' '{print $1}' <<< ${query[$i]})
+        fan_speed=$(awk -F ', ' '{print $2}' <<< ${query[$i]} | awk '{print $1}')
+        fan_rpm=${query_rpm[$i]}
+        temp=$(awk -F ', ' '{print $3}' <<< ${query[$i]})
+        printf "%s: %s\t     %s%%\t    %s\t     %s°\n" $i $card $fan_speed $fan_rpm $temp
+    done
+
+    unset IFS
+}
+
 # Parse and Execute Arguments passed to script                           {{{1
 case "$1" in
     # Set Fan Speed for all GPU Fans                                     {{{2
@@ -203,30 +232,7 @@ case "$1" in
 
     # Display GPU Fan and Temp Status                                    {{{2
     info|i)
-        IFS=$'\n'
-        # Retrieve GPU Names,  Fan Speed, and Temperature
-        query=($(nvidia-smi --query-gpu=name,fan.speed,temperature.gpu --format=csv,noheader))
-        # Retrieve GPU Fan RPM
-        query_rpm=($(nvidia-settings -q GPUCurrentFanSpeedRPM | grep "fan:" | awk -vFS=': ' -vRS='.' '{print $2}'))
-
-        # Summary format
-        # Nvidia Fan Info
-        # | Card |              | Fan Speed |   | Fan RPM | | GPU Temp |
-        # Geforce GTX 1080 Ti        50%            1600         53°
-
-        # Print out Header
-        printf "Nvidia Fan Info\n| Card |\t\t| Fan Speed |\t| Fan RPM |\t| GPU Temp |\n"
-
-        # Loop through GPUs to compile summary
-        for i in $(seq 0 $((numGPUs-1))); do
-            card=$(awk -F ', ' '{print $1}' <<< ${query[$i]})
-            fan_speed=$(awk -F ', ' '{print $2}' <<< ${query[$i]} | awk '{print $1}')
-            fan_rpm=${query_rpm[$i]}
-            temp=$(awk -F ', ' '{print $3}' <<< ${query[$i]})
-            printf "%s: %s\t     %s%%\t    %s\t     %s°\n" $i $card $fan_speed $fan_rpm $temp
-        done
-
-        unset IFS
+        getInfo
         ;;
 
     # Display Version Info                                               {{{2
