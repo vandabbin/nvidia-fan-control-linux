@@ -18,7 +18,7 @@
 
 #####   Configurable Settings   #####                                    {{{1
 # FanControl Configuration Path                                          {{{1
-fanConfig="$(getent passwd $(id -u -n) | cut -d ':' -f6)/.fancontrol"
+fanConfig="$(getent passwd $(id -un) | cut -d ':' -f6)/.fancontrol"
 
 # Default Fan Speed Setting                                              {{{1
 defaultSpeed=60
@@ -36,7 +36,9 @@ nCurveStart=23
 nCurveEnabled=true
 
 # Fan Curve Temperature Thresholds (In Celsius)                          {{{2
-# When Adding Temperature Thresholds you must also add curve points.
+# The temperature threshold is the temperature at which the the script
+# applies a different fan curve point. When Adding Temperature Thresholds
+# you must also add curve points.
 # There must always be one less temperature threshold (Excluding MAXTHRESHOLD)
 # then there is curve points for the script to work.
 
@@ -49,9 +51,10 @@ tempThresh[4]=40    # <-- Apply curve[4] if hotter than
                     # """ Apply curve[5] if cooler than
 
 # Fan Curve Points                                                       {{{2
-# When Adding Curve Points you must also add temperature thresholds.
+# The curve point is the Fan Speed Percentage applied at a given temperature
+# threshold. When Adding Curve Points you must also add temperature thresholds.
 # There must always be one less temperature threshold (Excluding MAXTHRESHOLD)
-# then there is curve points for the script to work.
+# then there is curve points for the script to work properly.
 
 # Day Curve    Night Curve
 dCurve[0]=95; nCurve[0]=80
@@ -90,10 +93,10 @@ runCurve()
     currentSpeed=($(nvidia-smi --query-gpu=fan.speed --format=csv,noheader | awk '{print $1}'))
     unset IFS
 
-    [ $nCurveEnabled ] && cTime=$(date +'%H') # Get the time
+    [ $nCurveEnabled ] && cTime=$(date +'%H') || cTime=$dCurveStart # Get the time
 
     # Checks time to apply day or night curve
-    [ $nCurveEnabled ] && [ $cTime -lt $dCurveStart -o $cTime -gt $nCurveStart ] && curve=("${nCurve[@]}") || curve=("${dCurve[@]}")
+    [ $cTime -lt $dCurveStart -o $cTime -ge $nCurveStart ] && curve=("${nCurve[@]}") || curve=("${dCurve[@]}")
 
     # Loop through each GPU
     for i in $(seq 0 $((numGPUs-1))); do
@@ -170,7 +173,7 @@ case "$1" in
             -a "[gpu:$2]/GPUFanControlState=1" \
             -a "[fan:$2]/GPUTargetFanSpeed=$3"
 
-        [ $? -ne 0 ] && { echo "Usage: $0 $1 gpuIndex  FanSpeed Between 0 - 100"; exit 2; }
+        [ $? -ne 0 ] && { echo "Usage: $0 $1  gpuIndex  FanSpeed Between 0 - 100"; exit 2; }
         ;;
 
     # Applies Fan Curve (For use with cron)                              {{{2
@@ -208,8 +211,8 @@ case "$1" in
 
         # Summary format
         # Nvidia Fan Info
-        # | Card |      | Fan Speed |   | Fan RPM | | GPU Temp |
-        # Geforce GTX 1080 Ti        50%        1600         53°
+        # | Card |              | Fan Speed |   | Fan RPM | | GPU Temp |
+        # Geforce GTX 1080 Ti        50%            1600         53°
 
         # Print out Header
         printf "Nvidia Fan Info\n| Card |\t\t| Fan Speed |\t| Fan RPM |\t| GPU Temp |\n"
