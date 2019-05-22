@@ -6,6 +6,9 @@ In order for this script to work, coolbits must be enabled in xorg.conf
 This script allows directly setting fan speed on Nvidia GPUs either manually or with a "fan curve".
 Supports Day and Night fan curves
 
+While the default fan curve settings will work, you may want to customize them to meet your needs or
+preferences.
+
 Add a line to cron like this to enable automatic fan control:
 
 ```
