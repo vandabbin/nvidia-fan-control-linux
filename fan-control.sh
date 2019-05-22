@@ -42,13 +42,13 @@ nCurveEnabled=true
 # There must always be one less temperature threshold (Excluding MAXTHRESHOLD)
 # then there is curve points for the script to work.
 
-MAXTHRESHOLD=65     # Fans will run at 100% if hotter than this temperature
-tempThresh[0]=60    # <-- Apply curve[0] if hotter than
-tempThresh[1]=55    # <-- Apply curve[1] if hotter than
-tempThresh[2]=50    # <-- Apply curve[2] if hotter than
-tempThresh[3]=45    # <-- Apply curve[3] if hotter than
-tempThresh[4]=40    # <-- Apply curve[4] if hotter than
-                    # """ Apply curve[5] if cooler than
+MAXTHRESHOLD=80    # Fans will run at 100% if hotter than this temperature
+tempThresh[0]=70   # <-- Apply curve[0] if hotter than
+tempThresh[1]=60   # <-- Apply curve[1] if hotter than
+tempThresh[2]=50   # <-- Apply curve[2] if hotter than
+tempThresh[3]=40   # <-- Apply curve[3] if hotter than
+tempThresh[4]=30   # <-- Apply curve[4] if hotter than
+                   # """ Apply curve[5] if cooler than
 
 # Fan Curve Points                                                       {{{2
 # The curve point is the Fan Speed Percentage applied at a given temperature
@@ -56,13 +56,13 @@ tempThresh[4]=40    # <-- Apply curve[4] if hotter than
 # There must always be one less temperature threshold (Excluding MAXTHRESHOLD)
 # then there is curve points for the script to work properly.
 
-# Day Curve    Night Curve
-dCurve[0]=95; nCurve[0]=80
-dCurve[1]=90; nCurve[1]=70
-dCurve[2]=80; nCurve[2]=60
-dCurve[3]=70; nCurve[3]=40
-dCurve[4]=50; nCurve[4]=30
-dCurve[5]=40; nCurve[5]=20
+# Day Curve   Night Curve
+dCurve[0]=70  nCurve[0]=60
+dCurve[1]=60  nCurve[1]=50
+dCurve[2]=50  nCurve[2]=40
+dCurve[3]=40  nCurve[3]=30
+dCurve[4]=30  nCurve[4]=20
+dCurve[5]=20  nCurve[5]=0
 
 ##### End Configurable Settings #####                                    {{{1
 # Export Display (For Headless Use)                                      {{{1
