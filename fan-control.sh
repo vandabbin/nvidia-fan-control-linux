@@ -133,7 +133,7 @@ getInfo()
     # Retrieve GPU Names,  Fan Speed, and Temperature
     query=($(nvidia-smi --query-gpu=name,fan.speed,temperature.gpu --format=csv,noheader))
     # Retrieve GPU Fan RPM
-    query_rpm=($(nvidia-settings -q GPUCurrentFanSpeedRPM | grep "fan:" | awk -F ': ' -vRS='.' '{print $2}'))
+    query_rpm=($(nvidia-settings -q GPUCurrentFanSpeedRPM 2> /dev/null | grep "fan:" | awk -F ': ' -vRS='.' '{print $2}')) # temporary bug fix
 
     # Summary format
     # Nvidia Fan Info
@@ -147,7 +147,7 @@ getInfo()
     for i in $(seq 0 $((numGPUs-1))); do
         card=$(awk -F ', ' '{print $1}' <<< ${query[$i]})
         fan_speed=$(awk -F ', ' '{print $2}' <<< ${query[$i]} | awk '{print $1}')
-        fan_rpm=${query_rpm[$i]}
+        [ -n ${query_rpm[$i]} ] && fan_rpm=${query_rpm[$i]} || fan_rpm='N/A ' # temporary bug fix
         temp=$(awk -F ', ' '{print $3}' <<< ${query[$i]})
         printf "%s: %s\t     %s%%\t    %s\t     %s°\n" $i $card $fan_speed $fan_rpm $temp
     done
